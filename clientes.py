@@ -12,7 +12,7 @@ PEOPLE = {
     },
     " Sparrow": {
         "fname": "Jack",
-        "lname": " Sparrow",
+        "lname": "Sparrow",
         "timestamp": get_timestamp(),
     },
     "Snow": {
