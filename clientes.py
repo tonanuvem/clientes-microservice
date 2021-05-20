@@ -10,7 +10,7 @@ PEOPLE = {
         "lname": "Jones",
         "timestamp": get_timestamp(),
     },
-    " Sparrow": {
+    "Sparrow": {
         "fname": "Jack",
         "lname": "Sparrow",
         "timestamp": get_timestamp(),
