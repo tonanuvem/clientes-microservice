@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import jsonify, make_response, abort
-from uuid import uuid4
+from shortuuid import uuid
 
 def get_timestamp():
     return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
