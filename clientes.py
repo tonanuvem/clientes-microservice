@@ -2,33 +2,25 @@ from datetime import datetime
 from flask import jsonify, make_response, abort
 from shortuuid import uuid
 
+from pymongo import MongoClient
+
+client = MongoClient("mongodb://localhost:27017/") # Local
+db = client.clientes
+
+def get_dict_from_mongodb():
+    itens_db = db.clientes.find()
+    PEOPLE = {}
+    for i in itens_db:
+            i.pop('_id') # retira id: criado automaticamente 
+            item = dict(i)
+            PEOPLE[item["id"]] = (i)
+    return PEOPLE
+
 def get_timestamp():
     return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
 
-id1, id2, id3 = str(uuid()), str(uuid()), str(uuid())
-
-PEOPLE = {
-    id1: {
-        "id": id1,
-        "fname": "Indiana",
-        "lname": "Jones",
-        "timestamp": get_timestamp(),
-    },
-    id2: {
-        "id": id2,
-        "fname": "Jack",
-        "lname": "Sparrow",
-        "timestamp": get_timestamp(),
-    },
-    id3: {
-        "id": id3,
-        "fname": "John",
-        "lname": "Snow",
-        "timestamp": get_timestamp(),
-    },
-}
-
 def read_all():
+    PEOPLE = get_dict_from_mongodb()
     dict_clientes = [PEOPLE[key] for key in sorted(PEOPLE.keys())]
     clientes = jsonify(dict_clientes)
     qtd = len(dict_clientes)
@@ -40,6 +32,7 @@ def read_all():
     return clientes
 
 def read_one(id):
+    PEOPLE = get_dict_from_mongodb()
     if id in PEOPLE:
         person = PEOPLE.get(id)
     else:
@@ -50,6 +43,7 @@ def read_one(id):
 
 
 def create(person):
+    PEOPLE = get_dict_from_mongodb()
     lname = person.get("lname", None)
     fname = person.get("fname", None)
 
@@ -65,12 +59,15 @@ def create(person):
     
     # Cliente nao existe, pode CRIAR:
     id=str(uuid())
-    PEOPLE[id] = {
+    item = {
         "id": id,
         "lname": lname,
         "fname": fname,
         "timestamp": get_timestamp(),
     }
+    db.clientes.insert_one(item)
+    
+    PEOPLE = get_dict_from_mongodb()
     return make_response(
         PEOPLE[id],201
         #"Cliente com nome "+fname+" e sobrenome "+lname+" criado com sucesso", 201
@@ -78,10 +75,18 @@ def create(person):
 
 
 def update(id, person):
+    query = { "id": id }
+    update = { "$set": {
+            "id": id,
+            "fname": person.get("fname"),
+            "lname": person.get("lname"),
+            "timestamp": get_timestamp(), } 
+        }
+    PEOPLE = get_dict_from_mongodb()
+
     if id in PEOPLE:
-        PEOPLE[id]["fname"] = person.get("fname")
-        PEOPLE[id]["lname"] = person.get("lname")
-        PEOPLE[id]["timestamp"] = get_timestamp()
+        db.clientes.update_one(query, update)
+        PEOPLE = get_dict_from_mongodb()
 
         return PEOPLE[id]
     else:
@@ -90,8 +95,11 @@ def update(id, person):
         )
 
 def delete(id):
+    query = { "id": id }
+    PEOPLE = get_dict_from_mongodb()
+
     if id in PEOPLE:
-        del PEOPLE[id]
+        db.clientes.delete_one(query)
         return make_response(
             "{id} deletado com sucesso".format(id=id), 200
         )
@@ -99,4 +107,3 @@ def delete(id):
         abort(
             404, "Pessoa com sobrenome {lname} nao encontrada".format(id=id)
         )
-
