@@ -1,21 +1,29 @@
 from datetime import datetime
 from flask import jsonify, make_response, abort
+from uuid import uuid4
 
 def get_timestamp():
     return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
 
+id1=str(uuid4())
+id2=str(uuid4())
+id3=str(uuid4())
+
 PEOPLE = {
-    "Jones": {
+    id1: {
+        "id": id1,
         "fname": "Indiana",
         "lname": "Jones",
         "timestamp": get_timestamp(),
     },
-    "Sparrow": {
+    id2: {
+        "id": id2,
         "fname": "Jack",
         "lname": "Sparrow",
         "timestamp": get_timestamp(),
     },
-    "Snow": {
+    id3: {
+        "id": id3,
         "fname": "John",
         "lname": "Snow",
         "timestamp": get_timestamp(),
@@ -33,12 +41,12 @@ def read_all():
     clientes.headers['Content-Range'] = content_range
     return clientes
 
-def read_one(lname):
-    if lname in PEOPLE:
-        person = PEOPLE.get(lname)
+def read_one(id):
+    if id in PEOPLE:
+        person = PEOPLE.get(id)
     else:
         abort(
-            404, "Pessoa com sobrenome {lname} nao encontrada".format(lname=lname)
+            404, "Pessoa com ID {id} nao encontrada".format(id=id)
         )
     return person
 
@@ -47,41 +55,49 @@ def create(person):
     lname = person.get("lname", None)
     fname = person.get("fname", None)
 
-    if lname not in PEOPLE and lname is not None:
-        PEOPLE[lname] = {
-            "lname": lname,
-            "fname": fname,
-            "timestamp": get_timestamp(),
-        }
+    for id in PEOPLE:
+        if fname == PEOPLE[id]["fname"] and lname == PEOPLE[id]["lname"]:            
+            # Cliente já existe
+            abort(
+                406,
+                "Pessoa com nome "+fname+" e sobrenome "+lname+" ja existe"
+            )
+        else:
+            continue
+    
+    # Cliente nao existe, pode CRIAR:
+    id=str(uuid4())
+    PEOPLE[id] = {
+        "id": id,
+        "lname": lname,
+        "fname": fname,
+        "timestamp": get_timestamp(),
+    }
+    return make_response(
+        "Cliente com nome "+fname+" e sobrenome "+lname+" criado com sucesso", 201
+    )
+
+
+def update(id, person):
+    if id in PEOPLE:
+        PEOPLE[id]["fname"] = person.get("fname")
+        PEOPLE[id]["lname"] = person.get("lname")
+        PEOPLE[id]["timestamp"] = get_timestamp()
+
+        return PEOPLE[id]
+    else:
+        abort(
+            404, "Pessoa com {id} nao encontrada".format(id=id)
+        )
+
+def delete(id):
+    if id in PEOPLE:
+        del PEOPLE[id]
         return make_response(
-            "{lname} criado com sucesso".format(lname=lname), 201
+            "{id} deletado com sucesso".format(id=id), 200
         )
     else:
         abort(
-            406,
-            "Pessoa com sobrenome {lname} ja existe".format(lname=lname),
-        )
-
-
-def update(lname, person):
-    if lname in PEOPLE:
-        PEOPLE[lname]["fname"] = person.get("fname")
-        PEOPLE[lname]["timestamp"] = get_timestamp()
-
-        return PEOPLE[lname]
-    else:
-        abort(
-            404, "Pessoa com sobrenome {lname} nao encontrada".format(lname=lname)
-        )
-
-def delete(lname):
-    if lname in PEOPLE:
-        del PEOPLE[lname]
-        return make_response(
-            "{lname} deletado com sucesso".format(lname=lname), 200
-        )
-    else:
-        abort(
-            404, "Pessoa com sobrenome {lname} nao encontrada".format(lname=lname)
+            404, "Pessoa com sobrenome {lname} nao encontrada".format(id=id)
         )
 
