@@ -5,9 +5,7 @@ from shortuuid import uuid
 def get_timestamp():
     return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
 
-id1=str(uuid())
-id2=str(uuid())
-id3=str(uuid())
+id1, id2, id3 = str(uuid()), str(uuid()), str(uuid())
 
 PEOPLE = {
     id1: {
