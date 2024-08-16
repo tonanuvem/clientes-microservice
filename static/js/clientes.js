@@ -47,7 +47,7 @@ ns.model = (function() {
         update: function(id, fname, lname) {
             let ajax_options = {
                 type: 'PUT',
-                url: 'api/clientes/' + lname,
+                url: 'api/clientes/' + id,
                 accepts: 'application/json',
                 contentType: 'application/json',
                 dataType: 'json',
