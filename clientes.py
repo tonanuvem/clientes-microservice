@@ -74,7 +74,8 @@ def create(person):
         "timestamp": get_timestamp(),
     }
     return make_response(
-        "Cliente com nome "+fname+" e sobrenome "+lname+" criado com sucesso", 201
+        PEOPLE[id],201
+        #"Cliente com nome "+fname+" e sobrenome "+lname+" criado com sucesso", 201
     )
 
 
