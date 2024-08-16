@@ -44,7 +44,7 @@ ns.model = (function() {
                 $event_pump.trigger('model_error', [xhr, textStatus, errorThrown]);
             })
         },
-        update: function(fname, lname) {
+        update: function(id, fname, lname) {
             let ajax_options = {
                 type: 'PUT',
                 url: 'api/clientes/' + lname,
@@ -52,6 +52,7 @@ ns.model = (function() {
                 contentType: 'application/json',
                 dataType: 'json',
                 data: JSON.stringify({
+                    'id': id,
                     'fname': fname,
                     'lname': lname
                 })
@@ -64,10 +65,10 @@ ns.model = (function() {
                 $event_pump.trigger('model_error', [xhr, textStatus, errorThrown]);
             })
         },
-        'delete': function(lname) {
+        'delete': function(id) {
             let ajax_options = {
                 type: 'DELETE',
-                url: 'api/clientes/' + lname,
+                url: 'api/clientes/' + id,
                 accepts: 'application/json',
                 contentType: 'plain/text'
             };
@@ -86,16 +87,19 @@ ns.model = (function() {
 ns.view = (function() {
     'use strict';
 
-    let $fname = $('#fname'),
+    let $id = $('#id'),
+        $fname = $('#fname'),
         $lname = $('#lname');
 
     // return the API
     return {
         reset: function() {
+            $id.val('');
             $lname.val('');
             $fname.val('').focus();
         },
-        update_editor: function(fname, lname) {
+        update_editor: function(id, fname, lname) {
+            $id.val(id);
             $lname.val(lname);
             $fname.val(fname).focus();
         },
@@ -107,10 +111,17 @@ ns.view = (function() {
 
             // did we get a people array?
             if (people) {
+                //alert('clientes = '+people)
                 for (let i=0, l=people.length; i < l; i++) {
-                    rows += `<tr><td class="fname">${people[i].fname}</td><td class="lname">${people[i].lname}</td><td>${people[i].timestamp}</td></tr>`;
+                    rows += `<tr>
+                    <td class="id">${people[i].id}</td>
+                    <td class="fname">${people[i].fname}</td>
+                    <td class="lname">${people[i].lname}</td>
+                    <td>${people[i].timestamp}</td>
+                    </tr>`;
                 }
                 $('table > tbody').append(rows);
+                //alert('rows = 'rows)
             }
         },
         error: function(error_msg) {
@@ -131,6 +142,7 @@ ns.controller = (function(m, v) {
     let model = m,
         view = v,
         $event_pump = $('body'),
+        $id = $('#id'),
         $fname = $('#fname'),
         $lname = $('#lname');
 
@@ -140,7 +152,7 @@ ns.controller = (function(m, v) {
     }, 100)
 
     // Validate input
-    function validate(fname, lname) {
+    function validate(id="", fname, lname) {
         return fname !== "" && lname !== "";
     }
 
@@ -151,7 +163,7 @@ ns.controller = (function(m, v) {
 
         e.preventDefault();
 
-        if (validate(fname, lname)) {
+        if (validate("", fname, lname)) {
             model.create(fname, lname)
         } else {
             alert('Problema com os parâmetros: primeiro ou último nome');
@@ -159,13 +171,14 @@ ns.controller = (function(m, v) {
     });
 
     $('#update').click(function(e) {
-        let fname = $fname.val(),
+        let id = $id.val(),
+            fname = $fname.val(),
             lname = $lname.val();
 
         e.preventDefault();
 
-        if (validate(fname, lname)) {
-            model.update(fname, lname)
+        if (validate(id, fname, lname)) {
+            model.update(id, fname, lname)
         } else {
             alert('Problema com os parâmetros: primeiro ou último nome');
         }
@@ -173,12 +186,12 @@ ns.controller = (function(m, v) {
     });
 
     $('#delete').click(function(e) {
-        let lname = $lname.val();
+        let id = $id.val();
 
         e.preventDefault();
 
-        if (validate('placeholder', lname)) {
-            model.delete(lname)
+        if (validate('placeholder', id)) {
+            model.delete(id)
         } else {
             alert('Problema com os parâmetros: primeiro ou último nome');
         }
@@ -195,8 +208,14 @@ ns.controller = (function(m, v) {
     $('table > tbody').on('dblclick', 'tr', function(e) {
         let $target = $(e.target),
             fname,
+            id,
             lname;
 
+        id = $target
+            .parent()
+            .find('td.id')
+            .text();
+            
         fname = $target
             .parent()
             .find('td.fname')
@@ -207,7 +226,7 @@ ns.controller = (function(m, v) {
             .find('td.lname')
             .text();
 
-        view.update_editor(fname, lname);
+        view.update_editor(id, fname, lname);
     });
 
     // Handle the model events
