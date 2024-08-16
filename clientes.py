@@ -64,7 +64,7 @@ def create(person):
             continue
     
     # Cliente nao existe, pode CRIAR:
-    id=str(uuid4())
+    id=str(uuid())
     PEOPLE[id] = {
         "id": id,
         "lname": lname,
