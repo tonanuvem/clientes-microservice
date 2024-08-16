@@ -17,7 +17,7 @@ openapi-spec-validator==0.2.9
 pymongo==4.6.3
 pyrsistent==0.17.3
 PyYAML==5.4
-requests==2.24.0
+requests==2.32.2
 six==1.15.0
 swagger-ui-bundle==0.0.8
 urllib3==1.26.19
